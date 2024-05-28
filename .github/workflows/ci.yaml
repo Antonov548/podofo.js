@@ -1,0 +1,27 @@
+name: CI
+
+on: 
+  push:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+
+    name: Build and test
+
+    steps:
+      - uses: actions/checkout@v3
+        submodules: true
+        with:
+          fetch-depth: 0
+
+      - name: run sanitizer
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/antonov548/podofo.js-docker:main
+          options: --rm -v ${{ github.workspace }}:/podofo.js
+          run: |
+            set -e
+            cd podofo.js
+            emcmake cmake -S. -Bbuild -DOPENSSL_CRYPTO_LIBRARY=/usr/local/libx32/libcrypto.a -DOPENSSL_SSL_LIBRARY=/usr/local/libx32/libssl.a -DOPENSSL_INCLUDE_DIR=/usr/local/include/ -DLIBXML2_LIBRARY=/usr/local/lib/libxml2.a -DLIBXML2_INCLUDE_DIR=/usr/local/include/libxml2/ -DPODOFO_BUILD_STATIC=ON
+            cmake --build build
