@@ -1,0 +1,10 @@
+{
+    "scripts": {
+      "format": "prettier --write \"./**.{js,ts,html}\"",
+      "test": "jest --detectOpenHandles"
+    },
+    "devDependencies": {
+      "jest": "^29.7.0",
+      "prettier": "^3.0.0"
+    }
+  }

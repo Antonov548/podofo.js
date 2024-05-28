@@ -25,3 +25,4 @@ jobs:
             cd podofo-js
             emcmake cmake -S. -Bbuild -DOPENSSL_CRYPTO_LIBRARY=/usr/local/libx32/libcrypto.a -DOPENSSL_SSL_LIBRARY=/usr/local/libx32/libssl.a -DOPENSSL_INCLUDE_DIR=/usr/local/include/ -DLIBXML2_LIBRARY=/usr/local/lib/libxml2.a -DLIBXML2_INCLUDE_DIR=/usr/local/include/libxml2/ -DPODOFO_BUILD_STATIC=ON
             cmake --build build
+            cmake --build build --target test
