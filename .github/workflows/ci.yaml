@@ -19,7 +19,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/antonov548/podofo.js-docker:main
-          options: --rm -v ${{ github.workspace }}:/podofo-js
+          options: --rm -v ${{ github.workspace }}:/src/podofo-js
           run: |
             set -e
             cd podofo-js
