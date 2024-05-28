@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: run sanitizer
+      - name: build with emscripten
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/antonov548/podofo.js-docker:main
