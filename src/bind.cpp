@@ -100,8 +100,11 @@ EMSCRIPTEN_BINDINGS(PODOFO)
         .function("createPage", createPage, em::allow_raw_pointers())
     ;
 
-    em::class_<PoDoFo::PdfPage>("Page")
+    em::class_<PoDoFo::PdfPage, em::base<PoDoFo::PdfCanvas>>("Page")
         .function("getRect", &getRect)    
+    ;
+
+    em::class_<PoDoFo::PdfCanvas>("Canvas")
     ;
 
     em::class_<PoDoFo::PdfMemDocument>("Document")
@@ -116,6 +119,21 @@ EMSCRIPTEN_BINDINGS(PODOFO)
         .function("setTitle", &setTitle)
         .function("getTitle", &getTitle)
         .function("resetTitle", &resetTitle)
+    ;
+
+    em::class_<PoDoFo::PdfPainter>("Painter")
+        .constructor()
+        .function("setCanvas", &PoDoFo::PdfPainter::SetCanvas)
+        .function("drawCircle", &PoDoFo::PdfPainter::DrawCircle)
+        .function("finishDrawing", &PoDoFo::PdfPainter::FinishDrawing)
+    ;
+
+    em::enum_<PoDoFo::PdfPathDrawMode>("PathDrawMode")
+        .value("Stroke", PoDoFo::PdfPathDrawMode::Stroke)
+        .value("Fill", PoDoFo::PdfPathDrawMode::Fill)
+        .value("StrokeFill", PoDoFo::PdfPathDrawMode::StrokeFill)
+        .value("FillEvenOdd", PoDoFo::PdfPathDrawMode::FillEvenOdd)
+        .value("StrokeFillEvenOdd", PoDoFo::PdfPathDrawMode::StrokeFillEvenOdd)   
     ;
 
     em::function("makeBuffer", &makeBuffer);
