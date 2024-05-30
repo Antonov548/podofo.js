@@ -2,10 +2,10 @@ describe('podofo.js', () => {
     it('create single page', async () => {
         const Podofo = global.Podofo;
 
-        const document = new Podofo.PdfMemDocument();
+        const document = new Podofo.Document();
         const pages = document.getPages();
 
-        const size = [0, 0, 100, 100];
+        const size = Podofo.getPageSize(Podofo.PageSize.A4, false);
         
         const page = pages.createPage(size);
         expect(page.getRect()).toEqual(size);
@@ -17,7 +17,7 @@ describe('podofo.js', () => {
 
         const buffer = Podofo.makeBuffer(pdf);
         
-        const parsedDocument = new Podofo.PdfMemDocument();
+        const parsedDocument = new Podofo.Document();
         parsedDocument.loadFromBuffer(buffer);
 
         const parsedPages = parsedDocument.getPages();
