@@ -1,4 +1,4 @@
-add_executable(jpodofo bind.cpp)
+add_executable(jpodofo bind.cpp fonts/notomono-regular.ttf.cpp)
 
 set(PODOFO_EMCC_FLAGS "--bind -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s MODULARIZE=1 -s EXPORT_NAME=Podofo -O3")
 if (DEBUG)

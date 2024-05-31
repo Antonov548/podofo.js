@@ -4,6 +4,20 @@
 
 namespace em = emscripten;
 
+struct embeded_resource
+{
+  const uint8_t* data;
+  size_t size;
+};
+
+struct embeded_header
+{
+  const embeded_resource* entries;
+  int count;
+};
+
+extern "C" const embeded_header embeded_fonts;
+
 namespace
 {
     // PdfMemDocument
@@ -22,6 +36,11 @@ namespace
         return &document.GetMetadata();
     }
 
+    PoDoFo::PdfFontManager* getFonts(PoDoFo::PdfMemDocument& document)
+    {
+        return &document.GetFonts();
+    }
+
     em::val save(PoDoFo::PdfMemDocument& document)
     {
         std::vector<char> buffer;
@@ -31,6 +50,13 @@ namespace
         const auto Uint8ClampedArray{em::val::global("Uint8ClampedArray")};
 
         return Uint8ClampedArray.new_(em::typed_memory_view(buffer.size(), reinterpret_cast<const uint8_t*>(buffer.data())));
+    }
+
+    // PdfFontManager
+    PoDoFo::PdfFont* getDefaultFont(PoDoFo::PdfFontManager& manager)
+    {
+        const auto& embeded_font{embeded_fonts.entries[0]};
+        return &manager.GetOrCreateFontFromBuffer({reinterpret_cast<const char*>(embeded_font.data), embeded_font.size});
     }
 
     // PdfMetadata
@@ -100,6 +126,13 @@ EMSCRIPTEN_BINDINGS(PODOFO)
         .function("createPage", createPage, em::allow_raw_pointers())
     ;
 
+    em::class_<PoDoFo::PdfFontManager>("FontManager")
+        .function("getDefaultFont", &getDefaultFont, em::allow_raw_pointers())
+    ;
+
+    em::class_<PoDoFo::PdfFont>("Font")
+    ;
+
     em::class_<PoDoFo::PdfPage, em::base<PoDoFo::PdfCanvas>>("Page")
         .function("getRect", &getRect)    
     ;
@@ -111,6 +144,7 @@ EMSCRIPTEN_BINDINGS(PODOFO)
         .constructor()
         .function("loadFromBuffer", &loadFromBuffer)
         .function("getPages", &getPages, em::allow_raw_pointers())
+        .function("getFonts", &getFonts, em::allow_raw_pointers())
         .function("getMetadata", &getMetadata, em::allow_raw_pointers())
         .function("save", &save);
     ;
