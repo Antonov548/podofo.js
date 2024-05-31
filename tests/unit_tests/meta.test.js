@@ -16,5 +16,7 @@ describe('podofo.js', () => {
         metadata.resetTitle();
 
         expect(metadata.getTitle()).toBeNull();
+
+        document.delete();
     });
 });

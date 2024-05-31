@@ -12,5 +12,8 @@ describe('podofo.js', () => {
         painter.setCanvas(page);
         painter.drawCircle(100, 500, 20, Podofo.PathDrawMode.Fill);
         painter.finishDrawing();
+
+        painter.delete();
+        document.delete();
     });
 });
