@@ -88,7 +88,35 @@ namespace
         return &pages.GetPageAt(index);
     }
 
+    // PdfPainter
+    void setFont(PoDoFo::PdfPainter& painter, const PoDoFo::PdfFont& font, double size)
+    {
+        painter.TextState.SetFont(font, size);
+    }
+
+    void drawText(PoDoFo::PdfPainter& painter, const std::string& text, double x, double y)
+    {
+        painter.DrawText(text, x, y);
+    }
+
     // PdfPage
+    em::val extractText(const PoDoFo::PdfPage& page)
+    {
+        std::vector<PoDoFo::PdfTextEntry> es;
+        page.ExtractTextTo(es);
+
+        em::val entries{em::val::array()};
+        for (const auto& e : es)
+        {
+            em::val entry{em::val::object()};
+            entry.set("text", e.Text);
+
+            entries.call<void>("push", entry);
+        }
+
+        return entries;
+    }
+    
     em::val rectToArray(const PoDoFo::Rect& rect)
     {
         std::array<double, 4> array_rect{};
@@ -134,7 +162,8 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     ;
 
     em::class_<PoDoFo::PdfPage, em::base<PoDoFo::PdfCanvas>>("Page")
-        .function("getRect", &getRect)    
+        .function("getRect", &getRect)
+        .function("extractText", &extractText)
     ;
 
     em::class_<PoDoFo::PdfCanvas>("Canvas")
@@ -158,6 +187,8 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     em::class_<PoDoFo::PdfPainter>("Painter")
         .constructor()
         .function("setCanvas", &PoDoFo::PdfPainter::SetCanvas)
+        .function("setFont", &setFont, em::allow_raw_pointers())
+        .function("drawText", &drawText)
         .function("drawCircle", &PoDoFo::PdfPainter::DrawCircle)
         .function("finishDrawing", &PoDoFo::PdfPainter::FinishDrawing)
     ;
@@ -170,10 +201,11 @@ EMSCRIPTEN_BINDINGS(PODOFO)
         .value("StrokeFillEvenOdd", PoDoFo::PdfPathDrawMode::StrokeFillEvenOdd)   
     ;
 
-    em::function("makeBuffer", &makeBuffer);
     em::function("getPageSize", &getPageSize);
 
-    em::register_vector<char>("Buffer");
+    em::class_<std::vector<char>>("Buffer")
+        .constructor(&makeBuffer)
+    ;
 
     em::enum_<PoDoFo::PdfPageSize>("PageSize")
         .value("A0", PoDoFo::PdfPageSize::A0)

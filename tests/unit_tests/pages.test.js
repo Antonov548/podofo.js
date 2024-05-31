@@ -15,7 +15,7 @@ describe('podofo.js', () => {
         const pdf = document.save();
         document.delete();
 
-        const buffer = Podofo.makeBuffer(pdf);
+        const buffer = new Podofo.Buffer(pdf);
         
         const parsedDocument = new Podofo.Document();
         parsedDocument.loadFromBuffer(buffer);

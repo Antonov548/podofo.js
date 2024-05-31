@@ -7,7 +7,6 @@ describe('podofo.js', () => {
         const page = document.getPages()
                              .createPage(size);
         
-        
         const painter = new Podofo.Painter();
         painter.setCanvas(page);
         painter.drawCircle(100, 500, 20, Podofo.PathDrawMode.Fill);
