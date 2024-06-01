@@ -190,6 +190,10 @@ EMSCRIPTEN_BINDINGS(PODOFO)
         .function("setFont", &setFont, em::allow_raw_pointers())
         .function("drawText", &drawText)
         .function("drawCircle", &PoDoFo::PdfPainter::DrawCircle)
+        .function("drawLine", &PoDoFo::PdfPainter::DrawLine)
+        .function("drawCubicBezier", &PoDoFo::PdfPainter::DrawCubicBezier)
+        .function("drawArc", &PoDoFo::PdfPainter::DrawArc)
+        .function("drawEllipse", &PoDoFo::PdfPainter::DrawEllipse)
         .function("finishDrawing", &PoDoFo::PdfPainter::FinishDrawing)
     ;
 
