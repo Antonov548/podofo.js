@@ -13,8 +13,6 @@ This docker image contains minimal required tools and dependencies to build a Ja
 Check [CI pipeline](https://github.com/Antonov548/podofo.js/blob/main/.github/workflows/ci.yaml) for more details how to build library.
 
 ## Example
-Minimal example of creating PDF:
-
 ```js
 
 const PodofoModule = require('podofo.js');
