@@ -27,11 +27,9 @@ describe('podofo.js', () => {
         
         painter.delete();
         document.delete();
-
-        const buffer = new Podofo.Buffer(pdf);
         
         const parsedDocument = new Podofo.Document();
-        parsedDocument.loadFromBuffer(buffer);
+        parsedDocument.loadFromBuffer(pdf);
 
         const parsedPages = parsedDocument.getPages();
         expect(parsedPages.getCount()).toEqual(1);
@@ -50,6 +48,5 @@ describe('podofo.js', () => {
         expect(entry2.text).toEqual(text2);
 
         parsedDocument.delete();
-        buffer.delete();
     });
 });

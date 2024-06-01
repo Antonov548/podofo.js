@@ -18,48 +18,58 @@ struct embeded_header
 
 extern "C" const embeded_header embeded_fonts;
 
-namespace
+namespace Document
 {
-    // PdfMemDocument
-    void loadFromBuffer(PoDoFo::PdfMemDocument& document, const std::vector<char>& buffer)
+    struct DocumentWrapper
     {
-        document.LoadFromBuffer({buffer.data(), buffer.size()});
+        PoDoFo::PdfMemDocument document;
+        std::vector<char> buffer;
+    };
+
+    void loadFromBuffer(DocumentWrapper& wrapper, em::val jbuffer)
+    {
+        wrapper.buffer = vecFromJSArray<char>(jbuffer);
+        wrapper.document.LoadFromBuffer({wrapper.buffer.data(), wrapper.buffer.size()});
     }
 
-    PoDoFo::PdfPageCollection* getPages(PoDoFo::PdfMemDocument& document)
+    PoDoFo::PdfPageCollection* getPages(DocumentWrapper& wrapper)
     {
-        return &document.GetPages();
+        return &wrapper.document.GetPages();
     }
 
-    PoDoFo::PdfMetadata* getMetadata(PoDoFo::PdfMemDocument& document)
+    PoDoFo::PdfMetadata* getMetadata(DocumentWrapper& wrapper)
     {
-        return &document.GetMetadata();
+        return &wrapper.document.GetMetadata();
     }
 
-    PoDoFo::PdfFontManager* getFonts(PoDoFo::PdfMemDocument& document)
+    PoDoFo::PdfFontManager* getFonts(DocumentWrapper& wrapper)
     {
-        return &document.GetFonts();
+        return &wrapper.document.GetFonts();
     }
 
-    em::val save(PoDoFo::PdfMemDocument& document)
+    em::val save(DocumentWrapper& wrapper)
     {
         std::vector<char> buffer;
         PoDoFo::VectorStreamDevice device{buffer};
         
-        document.Save(device);
+        wrapper.document.Save(device);
         const auto Uint8ClampedArray{em::val::global("Uint8ClampedArray")};
 
         return Uint8ClampedArray.new_(em::typed_memory_view(buffer.size(), reinterpret_cast<const uint8_t*>(buffer.data())));
     }
+}
 
-    // PdfFontManager
+namespace FontManager
+{
     PoDoFo::PdfFont* getDefaultFont(PoDoFo::PdfFontManager& manager)
     {
         const auto& embeded_font{embeded_fonts.entries[0]};
         return &manager.GetOrCreateFontFromBuffer({reinterpret_cast<const char*>(embeded_font.data), embeded_font.size});
     }
+}
 
-    // PdfMetadata
+namespace Metadata
+{
     void setTitle(PoDoFo::PdfMetadata& metadata, const std::string& title)
     {
         metadata.SetTitle(PoDoFo::PdfString(title));
@@ -75,8 +85,10 @@ namespace
         const auto title{metadata.GetTitle()};
         return title.has_value() ? em::val(title->GetString()) : em::val::null();
     }
+}
 
-    // PdfPageCollection
+namespace PageCollection
+{
     PoDoFo::PdfPage* createPage(PoDoFo::PdfPageCollection& pages, em::val jrect)
     {
         const auto& rect{vecFromJSArray<double>(jrect)};
@@ -87,8 +99,10 @@ namespace
     {
         return &pages.GetPageAt(index);
     }
+}
 
-    // PdfPainter
+namespace Painter
+{
     void setFont(PoDoFo::PdfPainter& painter, const PoDoFo::PdfFont& font, double size)
     {
         painter.TextState.SetFont(font, size);
@@ -98,8 +112,23 @@ namespace
     {
         painter.DrawText(text, x, y);
     }
+}
 
-    // PdfPage
+namespace Image
+{
+    std::unique_ptr<PoDoFo::PdfImage> makeImage(Document::DocumentWrapper& wrapper)
+    {
+        return wrapper.document.CreateImage();
+    }
+
+    void loadFromBuffer(PoDoFo::PdfImage& image, const std::vector<char>& buffer)
+    {
+        image.LoadFromBuffer({buffer.data(), buffer.size()});
+    }
+}
+
+namespace Page
+{
     em::val extractText(const PoDoFo::PdfPage& page)
     {
         std::vector<PoDoFo::PdfTextEntry> es;
@@ -139,7 +168,10 @@ namespace
         const auto size{PoDoFo::PdfPage::CreateStandardPageSize(page_size, landscape)};
         return rectToArray(size);
     }
+}
 
+namespace
+{
     std::vector<char> makeBuffer(em::val jbuffer)
     {
         return vecFromJSArray<char>(jbuffer);
@@ -150,51 +182,56 @@ EMSCRIPTEN_BINDINGS(PODOFO)
 {
     em::class_<PoDoFo::PdfPageCollection>("PageCollection")
         .function("getCount", &PoDoFo::PdfPageCollection::GetCount)
-        .function("getPage", &getPage, em::allow_raw_pointers())
-        .function("createPage", createPage, em::allow_raw_pointers())
+        .function("getPage", &PageCollection::getPage, em::allow_raw_pointers())
+        .function("createPage", &PageCollection::createPage, em::allow_raw_pointers())
     ;
 
     em::class_<PoDoFo::PdfFontManager>("FontManager")
-        .function("getDefaultFont", &getDefaultFont, em::allow_raw_pointers())
+        .function("getDefaultFont", &FontManager::getDefaultFont, em::allow_raw_pointers())
     ;
 
     em::class_<PoDoFo::PdfFont>("Font")
     ;
 
     em::class_<PoDoFo::PdfPage, em::base<PoDoFo::PdfCanvas>>("Page")
-        .function("getRect", &getRect)
-        .function("extractText", &extractText)
+        .function("getRect", &Page::getRect)
+        .function("extractText", &Page::extractText)
     ;
 
     em::class_<PoDoFo::PdfCanvas>("Canvas")
     ;
 
-    em::class_<PoDoFo::PdfMemDocument>("Document")
+    em::class_<Document::DocumentWrapper>("Document")
         .constructor()
-        .function("loadFromBuffer", &loadFromBuffer)
-        .function("getPages", &getPages, em::allow_raw_pointers())
-        .function("getFonts", &getFonts, em::allow_raw_pointers())
-        .function("getMetadata", &getMetadata, em::allow_raw_pointers())
-        .function("save", &save);
+        .function("loadFromBuffer", &Document::loadFromBuffer)
+        .function("getPages", &Document::getPages, em::allow_raw_pointers())
+        .function("getFonts", &Document::getFonts, em::allow_raw_pointers())
+        .function("getMetadata", &Document::getMetadata, em::allow_raw_pointers())
+        .function("save", &Document::save);
     ;
 
     em::class_<PoDoFo::PdfMetadata>("Metadata")
-        .function("setTitle", &setTitle)
-        .function("getTitle", &getTitle)
-        .function("resetTitle", &resetTitle)
+        .function("setTitle", &Metadata::setTitle)
+        .function("getTitle", &Metadata::getTitle)
+        .function("resetTitle", &Metadata::resetTitle)
     ;
 
     em::class_<PoDoFo::PdfPainter>("Painter")
         .constructor()
         .function("setCanvas", &PoDoFo::PdfPainter::SetCanvas)
-        .function("setFont", &setFont, em::allow_raw_pointers())
-        .function("drawText", &drawText)
+        .function("setFont", &Painter::setFont, em::allow_raw_pointers())
+        .function("drawText", &Painter::drawText)
         .function("drawCircle", &PoDoFo::PdfPainter::DrawCircle)
         .function("drawLine", &PoDoFo::PdfPainter::DrawLine)
         .function("drawCubicBezier", &PoDoFo::PdfPainter::DrawCubicBezier)
         .function("drawArc", &PoDoFo::PdfPainter::DrawArc)
         .function("drawEllipse", &PoDoFo::PdfPainter::DrawEllipse)
         .function("finishDrawing", &PoDoFo::PdfPainter::FinishDrawing)
+    ;
+
+    em::class_<PoDoFo::PdfImage>("Image")
+        .constructor(&Image::makeImage)
+        .function("loadFromBuffer", &Image::loadFromBuffer)
     ;
 
     em::enum_<PoDoFo::PdfPathDrawMode>("PathDrawMode")
@@ -205,7 +242,7 @@ EMSCRIPTEN_BINDINGS(PODOFO)
         .value("StrokeFillEvenOdd", PoDoFo::PdfPathDrawMode::StrokeFillEvenOdd)   
     ;
 
-    em::function("getPageSize", &getPageSize);
+    em::function("getPageSize", &Page::getPageSize);
 
     em::class_<std::vector<char>>("Buffer")
         .constructor(&makeBuffer)
