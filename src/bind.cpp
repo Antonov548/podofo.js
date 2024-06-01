@@ -117,19 +117,34 @@ void drawText(PoDoFo::PdfPainter& painter, const std::string& text, double x,
 
 namespace Image
 {
+
+std::unique_ptr<PoDoFo::PdfImage> makeFromObject([[maybe_unused]] const std::string& key, PoDoFo::PdfObject& object)
+{
+  std::unique_ptr<PoDoFo::PdfImage> image;
+  PoDoFo::PdfXObject::TryCreateFromObject<PoDoFo::PdfImage>(object, image);
+
+  return image;
+}
+
 std::unique_ptr<PoDoFo::PdfImage> makeImage(Document::DocumentWrapper& wrapper)
 {
   return wrapper.document.CreateImage();
 }
 
-void loadFromBuffer(PoDoFo::PdfImage& image, const std::vector<char>& buffer)
+void loadFromBuffer(PoDoFo::PdfImage& image, em::val jbuffer)
 {
+  const auto buffer{vecFromJSArray<char>(jbuffer)};
   image.LoadFromBuffer({buffer.data(), buffer.size()});
 }
 }  // namespace Image
 
 namespace Page
 {
+PoDoFo::PdfResources* getResources(PoDoFo::PdfPage& page)
+{
+  return page.GetResources();
+}
+
 em::val extractText(const PoDoFo::PdfPage& page)
 {
   std::vector<PoDoFo::PdfTextEntry> es;
@@ -173,18 +188,39 @@ em::val getPageSize(const PoDoFo::PdfPageSize& page_size,
 }
 }  // namespace Page
 
+namespace Resources
+{
+em::val getArray(PoDoFo::PdfResources& resources, PoDoFo::PdfResourceType type)
+{
+  em::val objects{em::val::object()};
+  for (auto& res : resources.GetResourceIterator(type))
+    objects.set(res.first.GetString(), res.second);
+
+  return objects;
+}
+}
+
 namespace
 {
 std::vector<char> makeBuffer(em::val jbuffer)
 {
   return vecFromJSArray<char>(jbuffer);
 }
+
+std::string error(std::uintptr_t p) 
+{
+  return reinterpret_cast<std::exception*>(p)->what();
+}
+
 }  // namespace
 
 // clang-format off
 
 EMSCRIPTEN_BINDINGS(PODOFO)
 {
+  em::class_<PoDoFo::PdfObject>("PdfObject")
+  ;
+
   em::class_<PoDoFo::PdfPageCollection>("PageCollection")
     .function("getCount", &PoDoFo::PdfPageCollection::GetCount)
     .function("getPage", &PageCollection::getPage, em::allow_raw_pointers())
@@ -201,9 +237,25 @@ EMSCRIPTEN_BINDINGS(PODOFO)
   em::class_<PoDoFo::PdfPage, em::base<PoDoFo::PdfCanvas>>("Page")
     .function("getRect", &Page::getRect)
     .function("extractText", &Page::extractText)
+    .function("getResources", &Page::getResources, em::allow_raw_pointers())
   ;
 
   em::class_<PoDoFo::PdfCanvas>("Canvas")
+  ;
+
+  em::class_<PoDoFo::PdfResources>("Resources")
+    .function("getArray", &Resources::getArray)
+  ;
+
+  em::enum_<PoDoFo::PdfResourceType>("ResourceType")
+    .value("Unknown", PoDoFo::PdfResourceType::Unknown)
+    .value("ExtGState", PoDoFo::PdfResourceType::ExtGState)
+    .value("ColorSpace", PoDoFo::PdfResourceType::ColorSpace)
+    .value("Pattern", PoDoFo::PdfResourceType::Pattern)
+    .value("Shading", PoDoFo::PdfResourceType::Shading)
+    .value("XObject", PoDoFo::PdfResourceType::XObject)
+    .value("Font", PoDoFo::PdfResourceType::Font)
+    .value("Properties", PoDoFo::PdfResourceType::Properties)
   ;
 
   em::class_<Document::DocumentWrapper>("Document")
@@ -226,6 +278,7 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     .function("setCanvas", &PoDoFo::PdfPainter::SetCanvas)
     .function("setFont", &Painter::setFont, em::allow_raw_pointers())
     .function("drawText", &Painter::drawText)
+    .function("drawImage", &PoDoFo::PdfPainter::DrawImage)
     .function("drawCircle", &PoDoFo::PdfPainter::DrawCircle)
     .function("drawLine", &PoDoFo::PdfPainter::DrawLine)
     .function("drawCubicBezier", &PoDoFo::PdfPainter::DrawCubicBezier)
@@ -236,7 +289,10 @@ EMSCRIPTEN_BINDINGS(PODOFO)
 
   em::class_<PoDoFo::PdfImage>("Image")
     .constructor(&Image::makeImage)
+    .constructor(&Image::makeFromObject)
     .function("loadFromBuffer", &Image::loadFromBuffer)
+    .property("width", &PoDoFo::PdfImage::GetWidth)
+    .property("height", &PoDoFo::PdfImage::GetHeight)
   ;
 
   em::enum_<PoDoFo::PdfPathDrawMode>("PathDrawMode")
@@ -248,10 +304,6 @@ EMSCRIPTEN_BINDINGS(PODOFO)
   ;
 
   em::function("getPageSize", &Page::getPageSize);
-
-  em::class_<std::vector<char>>("Buffer")
-    .constructor(&makeBuffer)
-  ;
 
   em::enum_<PoDoFo::PdfPageSize>("PageSize")
     .value("A0", PoDoFo::PdfPageSize::A0)
@@ -265,4 +317,6 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     .value("Legal", PoDoFo::PdfPageSize::Legal)
     .value("Tabloid", PoDoFo::PdfPageSize::Tabloid)
   ;
+
+  em::function("error", &error);
 }

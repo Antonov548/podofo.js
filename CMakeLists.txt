@@ -12,7 +12,7 @@ set(ALL_SOURCES
     src/bind.cpp
 )
 
-set(PODOFO_BUILD_TEST OFF)
+set(PODOFO_BUILD_LIB_ONLY ON)
 set(PODOFO_BUILD_STATIC ON)
 add_subdirectory(podofo)
 

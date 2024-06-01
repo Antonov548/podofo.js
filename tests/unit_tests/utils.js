@@ -1,9 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
-const writeToFile = (buffer, name) => {
+const writeFile = (buffer, name) => {
   const filePath = path.join(__dirname, name);
   fs.writeFileSync(filePath, buffer);
 }
 
-module.exports = { writeToFile };
+const readFile = (name) => {
+  const filePath = path.join(__dirname, `../test_data/${name}`);
+  return fs.readFileSync(filePath);
+}
+
+module.exports = { writeFile, readFile };
