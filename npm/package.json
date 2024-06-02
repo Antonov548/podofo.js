@@ -1,6 +1,6 @@
 {
   "name": "podofo.js",
-  "version": "1.0.0",
+  "version": "0.10.0",
   "module": "podofo.mjs",
   "files": ["podofo.mjs", "podofo.wasm"],
   "scripts": {
@@ -16,5 +16,10 @@
     "url": "https://github.com/Antonov548/podofo.js/issues"
   },
   "homepage": "https://github.com/Antonov548/podofo.js#readme",
-  "description": ""
+  "description": "podofo.js is a library for parsing, generation and editing of PDF documents.",
+  "keywords": [
+    "pdf",
+    "document",
+    "pdf-generation"
+  ]
 }
