@@ -14,8 +14,8 @@ Check [CI pipeline](https://github.com/Antonov548/podofo.js/blob/main/.github/wo
 
 ## Example
 ```js
+import PodofoModule from 'podofo.js'
 
-const PodofoModule = require('podofo.js');
 const Podofo = await PodofoModule();
 
 const document = new Podofo.Document();
