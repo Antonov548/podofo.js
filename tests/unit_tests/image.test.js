@@ -41,5 +41,6 @@ describe('podofo.js', () => {
     painter.delete();
     image.delete();
     document.delete();
+    parsedDocument.delete();
   });
 });

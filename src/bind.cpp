@@ -22,14 +22,14 @@ namespace Document
 struct DocumentWrapper
 {
   PoDoFo::PdfMemDocument document;
-  std::vector<char> buffer;
+  std::vector<uint8_t> buffer;
 };
 
 void loadFromBuffer(DocumentWrapper& wrapper, em::val jbuffer)
 {
-  wrapper.buffer = vecFromJSArray<char>(jbuffer);
+  wrapper.buffer = vecFromJSArray<uint8_t>(jbuffer);
   wrapper.document.LoadFromBuffer(
-      {wrapper.buffer.data(), wrapper.buffer.size()});
+      {reinterpret_cast<const char*>(wrapper.buffer.data()), wrapper.buffer.size()});
 }
 
 PoDoFo::PdfPageCollection* getPages(DocumentWrapper& wrapper)
@@ -133,8 +133,8 @@ std::unique_ptr<PoDoFo::PdfImage> makeImage(Document::DocumentWrapper& wrapper)
 
 void loadFromBuffer(PoDoFo::PdfImage& image, em::val jbuffer)
 {
-  const auto buffer{vecFromJSArray<char>(jbuffer)};
-  image.LoadFromBuffer({buffer.data(), buffer.size()});
+  const auto buffer{vecFromJSArray<uint8_t>(jbuffer)};
+  image.LoadFromBuffer({reinterpret_cast<const char*>(buffer.data()), buffer.size()});
 }
 }  // namespace Image
 

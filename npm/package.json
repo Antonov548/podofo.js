@@ -1,0 +1,20 @@
+{
+  "name": "podofo.js",
+  "version": "1.0.0",
+  "module": "podofo.mjs",
+  "files": ["podofo.mjs", "podofo.wasm"],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Antonov548/podofo.js.git"
+  },
+  "author": "Michael Antonov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Antonov548/podofo.js/issues"
+  },
+  "homepage": "https://github.com/Antonov548/podofo.js#readme",
+  "description": ""
+}
