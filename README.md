@@ -4,6 +4,13 @@ podofo.js is a JavaScript interface for the [PoDoFo](https://github.com/podofo/p
 
 Library provides functions to parse, create and modify PDF.
 
+## NPM package
+podofo.js npm pacakge is available - [npm/podofo.js](https://www.npmjs.com/package/podofo.js)
+
+```bash
+npm i podofo.js
+```
+
 ## Build with docker
 
 podofo.js is a compiled PoDoFo library to WebAssembly using Emscripten. 
