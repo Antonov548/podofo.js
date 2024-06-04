@@ -68,6 +68,12 @@ PoDoFo::PdfFont* getDefaultFont(PoDoFo::PdfFontManager& manager)
   return &manager.GetOrCreateFontFromBuffer(
       {reinterpret_cast<const char*>(embeded_font.data), embeded_font.size});
 }
+
+PoDoFo::PdfFont* getFontFromBuffer(PoDoFo::PdfFontManager& manager, em::val jbuffer)
+{
+  const auto buffer{vecFromJSArray<uint8_t>(jbuffer)};
+  return &manager.GetOrCreateFontFromBuffer({reinterpret_cast<const char*>(buffer.data()), buffer.size()});
+}
 }  // namespace FontManager
 
 namespace Metadata
@@ -263,6 +269,7 @@ EMSCRIPTEN_BINDINGS(PODOFO)
 
   em::class_<PoDoFo::PdfFontManager>("FontManager")
     .function("getDefaultFont", &FontManager::getDefaultFont, em::allow_raw_pointers())
+    .function("loadFromBuffer", &FontManager::getFontFromBuffer, em::allow_raw_pointers())
   ;
 
   em::class_<PoDoFo::PdfFont>("Font")
