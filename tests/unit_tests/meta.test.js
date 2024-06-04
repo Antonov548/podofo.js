@@ -17,6 +17,14 @@ describe('podofo.js', () => {
 
     expect(metadata.getTitle()).toBeNull();
 
+    const author = "Antonov548";
+    metadata.setAuthor(author);
+    expect(metadata.getAuthor()).toEqual(author);
+
+    const creator = "podofo.js - jest";
+    metadata.setCreator(creator);
+    expect(metadata.getCreator()).toEqual(creator);
+
     document.delete();
   });
 });

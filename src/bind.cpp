@@ -72,18 +72,52 @@ PoDoFo::PdfFont* getDefaultFont(PoDoFo::PdfFontManager& manager)
 
 namespace Metadata
 {
+void setAuthor(PoDoFo::PdfMetadata& metadata, const std::string& author)
+{
+  metadata.SetAuthor(PoDoFo::PdfString(author));
+}
+
+em::val getAuthor(PoDoFo::PdfMetadata& metadata)
+{
+  const auto author{metadata.GetAuthor()};
+  return author.has_value() ? em::val(author->GetString()) : em::val::null();
+}
+
+void setSubject(PoDoFo::PdfMetadata& metadata, const std::string& subject)
+{
+  metadata.SetSubject(PoDoFo::PdfString(subject));
+}
+
+em::val getSubject(PoDoFo::PdfMetadata& metadata)
+{
+  const auto subject{metadata.GetSubject()};
+  return subject.has_value() ? em::val(subject->GetString()) : em::val::null();
+}
+
+void setCreator(PoDoFo::PdfMetadata& metadata, const std::string& creator)
+{
+  metadata.SetCreator(PoDoFo::PdfString(creator));
+}
+
+em::val getCreator(PoDoFo::PdfMetadata& metadata)
+{
+  const auto creator{metadata.GetCreator()};
+  return creator.has_value() ? em::val(creator->GetString()) : em::val::null();
+}
+
 void setTitle(PoDoFo::PdfMetadata& metadata, const std::string& title)
 {
   metadata.SetTitle(PoDoFo::PdfString(title));
 }
-
-void resetTitle(PoDoFo::PdfMetadata& metadata) { metadata.SetTitle(nullptr); }
 
 em::val getTitle(PoDoFo::PdfMetadata& metadata)
 {
   const auto title{metadata.GetTitle()};
   return title.has_value() ? em::val(title->GetString()) : em::val::null();
 }
+
+void resetTitle(PoDoFo::PdfMetadata& metadata) { metadata.SetTitle(nullptr); }
+
 }  // namespace Metadata
 
 namespace PageCollection
@@ -270,6 +304,12 @@ EMSCRIPTEN_BINDINGS(PODOFO)
   em::class_<PoDoFo::PdfMetadata>("Metadata")
     .function("setTitle", &Metadata::setTitle)
     .function("getTitle", &Metadata::getTitle)
+    .function("setSubject", &Metadata::setSubject)
+    .function("getSubject", &Metadata::getSubject)
+    .function("setAuthor", &Metadata::setAuthor)
+    .function("getAuthor", &Metadata::getAuthor)
+    .function("setCreator", &Metadata::setCreator)
+    .function("getCreator", &Metadata::getCreator)
     .function("resetTitle", &Metadata::resetTitle)
   ;
 
