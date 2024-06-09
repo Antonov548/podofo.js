@@ -332,6 +332,8 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     .function("drawArc", &PoDoFo::PdfPainter::DrawArc)
     .function("drawEllipse", &PoDoFo::PdfPainter::DrawEllipse)
     .function("finishDrawing", &PoDoFo::PdfPainter::FinishDrawing)
+    .function("save", &PoDoFo::PdfPainter::Save)
+    .function("restore", &PoDoFo::PdfPainter::Restore)
   ;
 
   em::class_<PoDoFo::PdfImage>("Image")
