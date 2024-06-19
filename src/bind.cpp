@@ -29,7 +29,8 @@ void loadFromBuffer(DocumentWrapper& wrapper, em::val jbuffer)
 {
   wrapper.buffer = vecFromJSArray<uint8_t>(jbuffer);
   wrapper.document.LoadFromBuffer(
-      {reinterpret_cast<const char*>(wrapper.buffer.data()), wrapper.buffer.size()});
+      {reinterpret_cast<const char*>(wrapper.buffer.data()),
+       wrapper.buffer.size()});
 }
 
 PoDoFo::PdfPageCollection* getPages(DocumentWrapper& wrapper)
@@ -69,10 +70,12 @@ PoDoFo::PdfFont* getDefaultFont(PoDoFo::PdfFontManager& manager)
       {reinterpret_cast<const char*>(embeded_font.data), embeded_font.size});
 }
 
-PoDoFo::PdfFont* getFontFromBuffer(PoDoFo::PdfFontManager& manager, em::val jbuffer)
+PoDoFo::PdfFont* getFontFromBuffer(PoDoFo::PdfFontManager& manager,
+                                   em::val jbuffer)
 {
   const auto buffer{vecFromJSArray<uint8_t>(jbuffer)};
-  return &manager.GetOrCreateFontFromBuffer({reinterpret_cast<const char*>(buffer.data()), buffer.size()});
+  return &manager.GetOrCreateFontFromBuffer(
+      {reinterpret_cast<const char*>(buffer.data()), buffer.size()});
 }
 }  // namespace FontManager
 
@@ -153,12 +156,38 @@ void drawText(PoDoFo::PdfPainter& painter, const std::string& text, double x,
 {
   painter.DrawText(text, x, y);
 }
+
+void drawRectangle(
+    PoDoFo::PdfPainter& painter, double x, double y, double width,
+    double height,
+    PoDoFo::PdfPathDrawMode mode = PoDoFo::PdfPathDrawMode::Stroke,
+    double roundX = 0.0, double roundY = 0.0)
+{
+  painter.DrawRectangle(x, y, width, height, mode, roundX, roundY);
+}
+
+void setFillColor(PoDoFo::PdfPainter& painter, double r, double g, double b)
+{
+  painter.GraphicsState.SetFillColor(PoDoFo::PdfColor{r, g, b});
+}
+
+void setStrokeColor(PoDoFo::PdfPainter& painter, double r, double g, double b)
+{
+  painter.GraphicsState.SetStrokeColor(PoDoFo::PdfColor{r, g, b});
+}
+
+void setLineWidth(PoDoFo::PdfPainter& painter, double width)
+{
+  painter.GraphicsState.SetLineWidth(width);
+}
+
 }  // namespace Painter
 
 namespace Image
 {
 
-std::unique_ptr<PoDoFo::PdfImage> makeFromObject([[maybe_unused]] const std::string& key, PoDoFo::PdfObject& object)
+std::unique_ptr<PoDoFo::PdfImage> makeFromObject(
+    [[maybe_unused]] const std::string& key, PoDoFo::PdfObject& object)
 {
   std::unique_ptr<PoDoFo::PdfImage> image;
   PoDoFo::PdfXObject::TryCreateFromObject<PoDoFo::PdfImage>(object, image);
@@ -174,7 +203,8 @@ std::unique_ptr<PoDoFo::PdfImage> makeImage(Document::DocumentWrapper& wrapper)
 void loadFromBuffer(PoDoFo::PdfImage& image, em::val jbuffer)
 {
   const auto buffer{vecFromJSArray<uint8_t>(jbuffer)};
-  image.LoadFromBuffer({reinterpret_cast<const char*>(buffer.data()), buffer.size()});
+  image.LoadFromBuffer(
+      {reinterpret_cast<const char*>(buffer.data()), buffer.size()});
 }
 }  // namespace Image
 
@@ -238,7 +268,7 @@ em::val getArray(PoDoFo::PdfResources& resources, PoDoFo::PdfResourceType type)
 
   return objects;
 }
-}
+}  // namespace Resources
 
 namespace
 {
@@ -247,7 +277,7 @@ std::vector<char> makeBuffer(em::val jbuffer)
   return vecFromJSArray<char>(jbuffer);
 }
 
-std::string error(std::uintptr_t p) 
+std::string error(std::uintptr_t p)
 {
   return reinterpret_cast<std::exception*>(p)->what();
 }
@@ -331,9 +361,13 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     .function("drawCubicBezier", &PoDoFo::PdfPainter::DrawCubicBezier)
     .function("drawArc", &PoDoFo::PdfPainter::DrawArc)
     .function("drawEllipse", &PoDoFo::PdfPainter::DrawEllipse)
+    .function("drawRectangle", &Painter::drawRectangle)
     .function("finishDrawing", &PoDoFo::PdfPainter::FinishDrawing)
     .function("save", &PoDoFo::PdfPainter::Save)
     .function("restore", &PoDoFo::PdfPainter::Restore)
+    .function("setFillColor", &Painter::setFillColor)
+    .function("setStrokeColor", &Painter::setStrokeColor)
+    .function("setLineWidth", &Painter::setLineWidth)
   ;
 
   em::class_<PoDoFo::PdfImage>("Image")
