@@ -1,6 +1,6 @@
 {
   "name": "podofo.js",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "module": "podofo.mjs",
   "files": ["podofo.mjs", "podofo.wasm", "podofo.d.ts"],
   "types": "podofo.d.ts",
