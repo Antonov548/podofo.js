@@ -6,6 +6,13 @@ Library provides functions to parse, create and modify PDF.
 
 ## Why podofo.js
 
+Podofo.js is a JavaScript library that leverages the speed and efficiency of the PoDoFo C++ library for advanced PDF manipulation.
+
+ - **High Performance**: Utilizes C++ under the hood for fast and efficient PDF operations.
+ - **Comprehensive Functionality**: Offers extensive features for  creating, modifying, and extracting information from PDFs, including advanced operations like signing and font embedding.
+ - **Ease of Use**: Provides a developer-friendly JavaScript API, making it easy to integrate powerful PDF capabilities without needing deep C++ knowledge. 
+ - **Built-in Signing methods**: Supports digital signatures, encryption.
+
 ## Example
 ```js
 import PodofoModule from 'podofo.js'
