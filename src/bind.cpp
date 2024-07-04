@@ -256,6 +256,42 @@ em::val getPageSize(const PoDoFo::PdfPageSize& page_size,
       PoDoFo::PdfPage::CreateStandardPageSize(page_size, landscape)};
   return rectToArray(size);
 }
+
+em::val sign(PoDoFo::PdfPage& page, const PoDoFo::PdfImage& image, em::val jrect, em::val certificate, em::val key)
+{
+  const auto& rect{vecFromJSArray<double>(jrect)};
+
+  const auto certificate_buffer{vecFromJSArray<uint8_t>(certificate)};
+  const auto key_buffer{vecFromJSArray<uint8_t>(key)};
+
+  auto& signature = page.CreateField<PoDoFo::PdfSignature>("Signature", PoDoFo::Rect(rect[0], rect[1], rect[2], rect[3]));
+  signature.SetSignatureDate(PoDoFo::PdfDate::LocalNow());
+
+  auto form{page.GetDocument().CreateXObjectForm(PoDoFo::Rect(0, 0, image.GetWidth(), image.GetHeight()))};
+
+  PoDoFo::PdfPainter painter;
+  painter.SetCanvas(*form);
+  painter.DrawImage(image, 0, 0, 1, 1);
+  painter.FinishDrawing();
+
+  std::vector<char> buffer;
+  PoDoFo::VectorStreamDevice output{buffer};
+
+  PoDoFo::PdfSignerCms signer(
+    {reinterpret_cast<const char*>(certificate_buffer.data()), certificate_buffer.size()}, 
+    {reinterpret_cast<const char*>(key_buffer.data()), key_buffer.size()}
+  );
+
+  signature.SetAppearanceStream(*form);
+
+  PoDoFo::SignDocument(static_cast<PoDoFo::PdfMemDocument&>(page.GetDocument()), output, signer, signature, PoDoFo::PdfSaveOptions::SaveOnSigning);
+
+  const auto Uint8ClampedArray{em::val::global("Uint8ClampedArray")};
+
+  return Uint8ClampedArray.new_(em::typed_memory_view(
+      buffer.size(), reinterpret_cast<const uint8_t*>(buffer.data())));
+}
+
 }  // namespace Page
 
 namespace Resources
@@ -309,6 +345,7 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     .function("getRect", &Page::getRect)
     .function("extractText", &Page::extractText)
     .function("getResources", &Page::getResources, em::allow_raw_pointers())
+    .function("sign", &Page::sign)
   ;
 
   em::class_<PoDoFo::PdfCanvas>("Canvas")

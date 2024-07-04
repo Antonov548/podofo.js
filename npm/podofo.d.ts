@@ -22,6 +22,7 @@ declare module 'podofo.js' {
   export interface Page extends Canvas {
     getRect: () => Array<number>;
     extractText: () => Array<{text: string}>;
+    sign: (image: Image, rect: Array<number>, certificate: Uint8Array, privateKey: Uint8Array) => Uint8ClampedArray;
   }
   
   export interface PageCollection {
