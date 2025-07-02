@@ -1,7 +1,7 @@
 describe('podofo.js', () => {
   it('pdf meta data', async () => {
     const Podofo = global.Podofo;
-    
+
     const document = new Podofo.Document();
     const metadata = document.getMetadata();
 

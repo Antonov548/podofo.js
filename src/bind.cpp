@@ -89,7 +89,7 @@ void setAuthor(PoDoFo::PdfMetadata& metadata, const std::string& author)
 em::val getAuthor(PoDoFo::PdfMetadata& metadata)
 {
   const auto author{metadata.GetAuthor()};
-  return author.has_value() ? em::val(author->GetString()) : em::val::null();
+  return author.has_value() ? em::val(std::string(author->GetString())) : em::val::null();
 }
 
 void setSubject(PoDoFo::PdfMetadata& metadata, const std::string& subject)
@@ -100,7 +100,7 @@ void setSubject(PoDoFo::PdfMetadata& metadata, const std::string& subject)
 em::val getSubject(PoDoFo::PdfMetadata& metadata)
 {
   const auto subject{metadata.GetSubject()};
-  return subject.has_value() ? em::val(subject->GetString()) : em::val::null();
+  return subject.has_value() ? em::val(std::string(subject->GetString())) : em::val::null();
 }
 
 void setCreator(PoDoFo::PdfMetadata& metadata, const std::string& creator)
@@ -111,7 +111,7 @@ void setCreator(PoDoFo::PdfMetadata& metadata, const std::string& creator)
 em::val getCreator(PoDoFo::PdfMetadata& metadata)
 {
   const auto creator{metadata.GetCreator()};
-  return creator.has_value() ? em::val(creator->GetString()) : em::val::null();
+  return creator.has_value() ? em::val(std::string(creator->GetString())) : em::val::null();
 }
 
 void setTitle(PoDoFo::PdfMetadata& metadata, const std::string& title)
@@ -122,7 +122,7 @@ void setTitle(PoDoFo::PdfMetadata& metadata, const std::string& title)
 em::val getTitle(PoDoFo::PdfMetadata& metadata)
 {
   const auto title{metadata.GetTitle()};
-  return title.has_value() ? em::val(title->GetString()) : em::val::null();
+  return title.has_value() ? em::val(std::string(title->GetString())) : em::val::null();
 }
 
 void resetTitle(PoDoFo::PdfMetadata& metadata) { metadata.SetTitle(nullptr); }
@@ -134,7 +134,7 @@ namespace PageCollection
 PoDoFo::PdfPage* createPage(PoDoFo::PdfPageCollection& pages, em::val jrect)
 {
   const auto& rect{vecFromJSArray<double>(jrect)};
-  return &pages.CreatePage({rect[0], rect[1], rect[2], rect[3]});
+  return &pages.CreatePage(PoDoFo::Rect{rect[0], rect[1], rect[2], rect[3]});
 }
 
 PoDoFo::PdfPage* getPage(PoDoFo::PdfPageCollection& pages, int index)
@@ -145,6 +145,12 @@ PoDoFo::PdfPage* getPage(PoDoFo::PdfPageCollection& pages, int index)
 
 namespace Painter
 {
+
+void setCanvas(PoDoFo::PdfPainter& painter, PoDoFo::PdfCanvas& canvas)
+{
+  painter.SetCanvas(canvas);
+}
+
 void setFont(PoDoFo::PdfPainter& painter, const PoDoFo::PdfFont& font,
              double size)
 {
@@ -168,12 +174,12 @@ void drawRectangle(
 
 void setFillColor(PoDoFo::PdfPainter& painter, double r, double g, double b)
 {
-  painter.GraphicsState.SetFillColor(PoDoFo::PdfColor{r, g, b});
+  painter.GraphicsState.SetNonStrokingColor(PoDoFo::PdfColor{r, g, b});
 }
 
 void setStrokeColor(PoDoFo::PdfPainter& painter, double r, double g, double b)
 {
-  painter.GraphicsState.SetStrokeColor(PoDoFo::PdfColor{r, g, b});
+  painter.GraphicsState.SetStrokingColor(PoDoFo::PdfColor{r, g, b});
 }
 
 void setLineWidth(PoDoFo::PdfPainter& painter, double width)
@@ -212,7 +218,7 @@ namespace Page
 {
 PoDoFo::PdfResources* getResources(PoDoFo::PdfPage& page)
 {
-  return page.GetResources();
+  return &page.GetResources();
 }
 
 em::val extractText(const PoDoFo::PdfPage& page)
@@ -278,11 +284,11 @@ em::val sign(PoDoFo::PdfPage& page, const PoDoFo::PdfImage& image, em::val jrect
   PoDoFo::VectorStreamDevice output{buffer};
 
   PoDoFo::PdfSignerCms signer(
-    {reinterpret_cast<const char*>(certificate_buffer.data()), certificate_buffer.size()}, 
+    {reinterpret_cast<const char*>(certificate_buffer.data()), certificate_buffer.size()},
     {reinterpret_cast<const char*>(key_buffer.data()), key_buffer.size()}
   );
 
-  signature.SetAppearanceStream(*form);
+  signature.MustGetWidget().SetAppearanceStream(*form);
 
   PoDoFo::SignDocument(static_cast<PoDoFo::PdfMemDocument&>(page.GetDocument()), output, signer, signature, PoDoFo::PdfSaveOptions::SaveOnSigning);
 
@@ -300,7 +306,7 @@ em::val getArray(PoDoFo::PdfResources& resources, PoDoFo::PdfResourceType type)
 {
   em::val objects{em::val::object()};
   for (auto& res : resources.GetResourceIterator(type))
-    objects.set(res.first.GetString(), res.second);
+    objects.set(std::string(res.first.GetString()), res.second);
 
   return objects;
 }
@@ -389,7 +395,7 @@ EMSCRIPTEN_BINDINGS(PODOFO)
 
   em::class_<PoDoFo::PdfPainter>("Painter")
     .constructor()
-    .function("setCanvas", &PoDoFo::PdfPainter::SetCanvas)
+    .function("setCanvas", &Painter::setCanvas)
     .function("setFont", &Painter::setFont, em::allow_raw_pointers())
     .function("drawText", &Painter::drawText)
     .function("drawImage", &PoDoFo::PdfPainter::DrawImage)
@@ -420,7 +426,7 @@ EMSCRIPTEN_BINDINGS(PODOFO)
     .value("Fill", PoDoFo::PdfPathDrawMode::Fill)
     .value("StrokeFill", PoDoFo::PdfPathDrawMode::StrokeFill)
     .value("FillEvenOdd", PoDoFo::PdfPathDrawMode::FillEvenOdd)
-    .value("StrokeFillEvenOdd", PoDoFo::PdfPathDrawMode::StrokeFillEvenOdd)   
+    .value("StrokeFillEvenOdd", PoDoFo::PdfPathDrawMode::StrokeFillEvenOdd)
   ;
 
   em::function("getPageSize", &Page::getPageSize);

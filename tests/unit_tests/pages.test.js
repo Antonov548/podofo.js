@@ -6,7 +6,7 @@ describe('podofo.js', () => {
     const pages = document.getPages();
 
     const size = Podofo.getPageSize(Podofo.PageSize.A4, false);
-    
+
     const page = pages.createPage(size);
     expect(page.getRect()).toEqual(size);
 
@@ -14,7 +14,7 @@ describe('podofo.js', () => {
 
     const pdf = document.save();
     document.delete();
-    
+
     const parsedDocument = new Podofo.Document();
     parsedDocument.loadFromBuffer(pdf);
 

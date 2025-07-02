@@ -9,11 +9,11 @@ describe('podofo.js', () => {
     const page = document.getPages()
                             .createPage(size);
 
-    const buffer = readFile('image.jpg'); 
+    const buffer = readFile('image.jpg');
 
     const image = new Podofo.Image(document);
     image.loadFromBuffer(buffer);
-    
+
     const painter = new Podofo.Painter();
     painter.setCanvas(page);
     painter.drawImage(image, 0, 0, 1, 1);
@@ -52,11 +52,11 @@ describe('podofo.js', () => {
     const page = document.getPages()
                             .createPage(size);
 
-    const buffer = readFile('image.png'); 
+    const buffer = readFile('image.png');
 
     const image = new Podofo.Image(document);
     image.loadFromBuffer(buffer);
-    
+
     const painter = new Podofo.Painter();
     painter.setCanvas(page);
     painter.drawImage(image, 0, 0, 1, 1);
