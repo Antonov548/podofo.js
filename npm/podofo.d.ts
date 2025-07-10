@@ -27,7 +27,7 @@ declare module 'podofo.js' {
   
   export interface PageCollection {
     getCount: () => number;
-    getPage: () => Page;
+    getPage: (index: number) => Page;
     createPage: (size: Array<number>) => Page;
   }
   
