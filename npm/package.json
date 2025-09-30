@@ -1,8 +1,28 @@
 {
   "name": "podofo.js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "module": "podofo.mjs",
-  "files": ["podofo.mjs", "podofo.wasm", "podofo.d.ts"],
+  "exports": {
+    ".": {
+      "import": {
+        "node": "./podofo.node.js",
+        "browser": "./podofo.mjs",
+        "default": "./podofo.node.js"
+      },
+      "require": {
+        "node": "./podofo.node.js",
+        "browser": "./podofo.mjs",
+        "default": "./podofo.node.js"
+      }
+    }
+  },
+  "files": [
+    "podofo.mjs",
+    "podofo.wasm",
+    "podofo.node.js",
+    "podofo.node.wasm",
+    "podofo.d.ts"
+  ],
   "types": "podofo.d.ts",
   "readme": "./README.md",
   "scripts": {

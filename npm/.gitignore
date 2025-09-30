@@ -1,4 +1,6 @@
 *.tgz
 podofo.mjs
+podofo.node.js
 podofo.wasm
+podofo.node.wasm
 package-lock.json
